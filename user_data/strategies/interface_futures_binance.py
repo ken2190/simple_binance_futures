@@ -1,7 +1,6 @@
 import ccxt
 import arrow
 import logging
-from typing import Dict
 from freqtrade.exchange import Exchange, Binance
 from freqtrade.wallets import Wallets, Wallet
 from freqtrade.persistence import LocalTrade, Trade
@@ -14,6 +13,8 @@ from freqtrade.strategy import stoploss_from_open
 from datetime import datetime, timedelta
 from freqtrade.enums import RunMode
 from freqtrade.constants import UNLIMITED_STAKE_AMOUNT
+from typing import Dict, List, Optional, Tuple, Union
+from pandas import DataFrame
 
 logger = logging.getLogger(__name__)
 
@@ -34,8 +35,9 @@ class IFutures(IStrategy):
         else:
             return proposed_stake * self._leverage
 
-    def custom_stoploss(self, pair: str, trade: 'Trade', current_time: datetime,
-                        current_rate: float, current_profit: float, **kwargs) -> float:
+    def custom_stoploss(
+        self, pair: str, trade: 'Trade', current_time: datetime, current_rate: float, current_profit: float, **kwargs
+    ) -> float:
         p = locals()
         del p["self"], p["__class__"]
         stoploss = super().custom_stoploss(**p)
@@ -49,6 +51,7 @@ class IFutures(IStrategy):
         self, pair: str, order_type: str, amount: float, rate: float, time_in_force: str, current_time: datetime,
         **kwargs
     ) -> bool:
+
         if self.dp.runmode not in [RunMode.LIVE]:
             self._maintenance_stoploss[pair] = self.stoploss
 
@@ -56,6 +59,32 @@ class IFutures(IStrategy):
             self.reset_leverage()
 
         return pair in self._maintenance_stoploss
+
+    def ohlcvdata_to_dataframe(self, data: Dict[str, DataFrame]) -> Dict[str, DataFrame]:
+        # in hyper not call bot_loop_start.so....
+        self.prepare_futures()
+
+        p = locals()
+        del p["self"], p["__class__"]
+        return super().ohlcvdata_to_dataframe(**p)
+
+    def bot_loop_start(self, **kwargs) -> None:
+        self.prepare_futures()
+
+    def prepare_futures(self):
+        if self._initialized_futures:
+            return
+
+        self.check_config()
+
+        self.hook_method()
+
+        self.reset_stoploss()
+
+        if self.dp.runmode in [RunMode.LIVE]:
+            self.reset_leverage()
+
+        self._initialized_futures = True
 
     def check_config(self):
         if self._leverage < 1:
@@ -111,21 +140,6 @@ class IFutures(IStrategy):
 
         self.wallets._exchange.reload_markets()
 
-    def bot_loop_start(self, **kwargs) -> None:
-        if self._initialized_futures:
-            return
-
-        self.check_config()
-
-        self.hook_method()
-
-        self.reset_stoploss()
-
-        if self.dp.runmode in [RunMode.LIVE]:
-            self.reset_leverage()
-
-        self._initialized_futures = True
-
 
 # ------------------------------------------------------------------------
 def get_free(self, currency: str) -> float:
@@ -136,6 +150,7 @@ def get_free(self, currency: str) -> float:
         return balance.free * leverage
     else:
         return 0
+
 
 def _update_dry(self) -> None:
 

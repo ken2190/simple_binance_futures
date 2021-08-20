@@ -14,7 +14,7 @@
 Make sure your API is enabled and have Futures permissions
 Open futures after created the API, the created API still does not support futres, you must create a new API
 - When the script starts, it will initialize Leverage, PositionsideDual, Isolated, so your position needs to be empty
-- Make sure that the following methods are not customized `custom_stake_amount` `custom_stoploss` `confirm_trade_entry` `bot_loop_start`
+- Make sure that the following methods are not customized  `ohlcvdata_to_dataframe` `custom_stake_amount` `custom_stoploss` `confirm_trade_entry` `bot_loop_start` or use `super().xxx()` first
 
 ## Modify config.json
 - Must set `order_types.stoploss_on_exchange` to `true`.
