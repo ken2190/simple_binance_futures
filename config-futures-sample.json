@@ -1,0 +1,48 @@
+{
+    "max_open_trades": 5,
+    "stake_amount": 100, // If you use 10x leverage, then the order amount in Binance is 100x50=5000
+    "tradable_balance_ratio": 0.99,
+    "order_types": {
+        "buy": "limit",
+        "sell": "limit",
+        "stoploss": "market",
+        "stoploss_on_exchange": true, // Required
+        "stoploss_on_exchange_interval": 0
+    },
+    "bid_strategy": {
+        "price_side": "ask",
+        "ask_last_balance": 0.0,
+        "use_order_book": true, // Required
+        "order_book_top": 1,
+        "check_depth_of_market": {
+            "enabled": false,
+            "bids_to_ask_delta": 1
+        }
+    },
+    "ask_strategy": {
+        "price_side": "bid",
+        "use_order_book": true, // Required
+        "order_book_top": 1
+    },
+    "exchange": {
+        "name": "binance",
+        "key": "",
+        "secret": "",
+        "ccxt_config": {
+            "enableRateLimit": true,
+            "rateLimit": 100,
+            "options": {
+                "defaultType": "future" // Required
+            }
+        },
+        "ccxt_async_config": {
+            "enableRateLimit": true,
+            "rateLimit": 50,
+            "options": {
+                "defaultType": "future" // Required
+            }
+        },
+        "pair_whitelist": [],
+        "pair_blacklist": []
+    }
+}
