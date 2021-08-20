@@ -43,9 +43,8 @@ class SimpleBinanceFutures(interface_futures_binance.IFutures):
         """
         p = locals()
         del p["self"], p["__class__"]
-        parent_stoploss = super().custom_stoploss(**p)
 
-        return max(stoploss_from_open(parent_stoploss, current_profit), -1)
+        return stoploss_from_open(super().custom_stoploss(**p), current_profit)
 
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
 
