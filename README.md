@@ -2,6 +2,7 @@
 
 ## Attention
 
+- Just use leverage. The fee difference between futures and spot is not **considered**. For example, funding rate, etc.
 - Only support **binance**
 - Only support **isolated**
 - Only **long**, Short is not supported
@@ -20,6 +21,7 @@ Open futures after created the API, the created API still does not support futre
 - Must set `order_types.stoploss_on_exchange` to `true`.
 - Muset set `bid_strategy.use_order_book` to `true`.
 - Muset set `ask_strategy.use_order_book` to `true`.
+- Highly recommended set `ccxt_config.enableRateLimit` to `true`.
 - `exchange.ccxt_config` add `"options": {"defaultType": "future"}`
 - `exchange.ccxt_async_config` add `"options": {"defaultType": "future"}`
 
