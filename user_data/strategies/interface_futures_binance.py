@@ -120,7 +120,7 @@ class IFutures(IStrategy):
         self.wallets._exchange._api.fapiPrivateGetPositionsideDual(params={"dualSidePosition": False})
 
         for x in self.wallets._exchange._api.fetch_positions():
-            stoploss = self.stoploss + x["maintenanceMarginPercentage"]
+            stoploss = max(-1 / self._leverage + x["maintenanceMarginPercentage"], self.stoploss)
             ratio = self.order_types.get('stoploss_on_exchange_limit_ratio', 0.99)
             self._maintenance_stoploss[x["symbol"]] = (stoploss + 1) / ratio - 1
 
@@ -128,14 +128,14 @@ class IFutures(IStrategy):
             if int(x["leverage"]) != self._leverage:
                 logger.info('set leverage %s. leverage: %s.', x["symbol"], self._leverage)
                 self.wallets._exchange._api.set_leverage(
-                    self.wallets._exchange._api.markets_by_id[x["symbol"]]["symbol"],
-                    self._leverage,
+                    symbol=self.wallets._exchange._api.markets_by_id[x["symbol"]]["symbol"],
+                    leverage=self._leverage,
                 )
             if x["isolated"] != self._isolated:
                 logger.info('set isolated %s. isolated: %s.', x["symbol"], "ISOLATED" if self._isolated else "CROSSED")
                 self.wallets._exchange._api.set_margin_mode(
-                    self.wallets._exchange._api.markets_by_id[x["symbol"]]["symbol"],
-                    "ISOLATED" if self._isolated else "CROSSED",
+                    symbol=self.wallets._exchange._api.markets_by_id[x["symbol"]]["symbol"],
+                    marginType="ISOLATED" if self._isolated else "CROSSED",
                 )
 
         self.wallets._exchange.reload_markets()
@@ -185,6 +185,9 @@ def get_balances(self) -> dict:
 
                 quote = self._api.markets_by_id[x["symbol"]]["quote"]
                 if quote != self._config["stake_currency"]:
+                    continue
+
+                if float(x["positionAmt"]) <= 0:
                     continue
 
                 base = self._api.markets_by_id[x["symbol"]]["base"]
