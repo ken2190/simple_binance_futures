@@ -1,6 +1,6 @@
 {
     "max_open_trades": 5,
-    "stake_amount": 100, // If you use 10x leverage, then the order amount in Binance is 100x50=5000
+    "stake_amount": 100, // If you use 10x leverage, then the order amount in Binance is 100x10=1000
     "tradable_balance_ratio": 0.99,
     "order_types": {
         "buy": "limit",

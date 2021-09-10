@@ -13,7 +13,7 @@ from freqtrade.strategy import stoploss_from_open
 from datetime import datetime, timedelta
 from freqtrade.enums import RunMode
 from freqtrade.constants import UNLIMITED_STAKE_AMOUNT
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union, Any
 from pandas import DataFrame
 
 logger = logging.getLogger(__name__)
@@ -103,6 +103,7 @@ class IFutures(IStrategy):
         Binance._params = {"workingType": "MARK_PRICE"}
         Binance.stoploss_adjust = stoploss_adjust
         Binance.stoploss = stoploss
+        Binance.create_dry_run_order = create_dry_run_order
         Wallets.get_free = get_free
         Wallets._update_dry = _update_dry
         Wallets.leverage = self._leverage
@@ -269,3 +270,41 @@ def stoploss(self, pair: str, amount: float, stop_price: float, order_types: Dic
         raise TemporaryError(f'Could not place sell order due to {e.__class__.__name__}. Message: {e}') from e
     except ccxt.BaseError as e:
         raise OperationalException(e) from e
+
+def create_dry_run_order(self, pair: str, ordertype: str, side: str, amount: float,
+                         rate: float, params: Dict = {}) -> Dict[str, Any]:
+    order_id = f'dry_run_{side}_{datetime.now().timestamp()}'
+    _amount = self.amount_to_precision(pair, amount)
+    dry_order: Dict[str, Any] = {
+        'id': order_id,
+        'symbol': pair,
+        'price': rate,
+        'average': rate,
+        'amount': _amount,
+        'cost': _amount * rate,
+        'type': ordertype,
+        'side': side,
+        'remaining': _amount,
+        'datetime': arrow.utcnow().isoformat(),
+        'timestamp': arrow.utcnow().int_timestamp * 1000,
+        'status': "closed" if ordertype == "market" else "open",
+        'fee': None,
+        'info': {}
+    }
+    if dry_order["type"] in ["stop", "stop_loss_limit", "stop-loss-limit"]:
+        dry_order["info"] = {"stopPrice": dry_order["price"]}
+
+    if dry_order["type"] == "market":
+        # Update market order pricing
+        average = self.get_dry_market_fill_price(pair, side, amount, rate)
+        dry_order.update({
+            'average': average,
+            'cost': dry_order['amount'] * average,
+        })
+        dry_order = self.add_dry_order_fee(pair, dry_order)
+
+    dry_order = self.check_dry_limit_order_filled(dry_order)
+
+    self._dry_run_open_orders[dry_order["id"]] = dry_order
+    # Copy order and close it - so the returned order is open unless it's a market order
+    return dry_order

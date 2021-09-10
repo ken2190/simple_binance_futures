@@ -8,7 +8,7 @@
 - Only **long**, Short is not supported
 - Not support **increasing margin**
 - Not support **adjusting leverage** when holding positions,This is a limitation of Binance
-- Please use the **2021.07** version of FT. There is no guarantee that the previous or later versions will support.Don't forget `pip install -r requirements.txt` after updating FT
+- Please use the **2021.07**/**2021.08** version of FT. There is no guarantee that the previous or later versions will support.Don't forget `pip install -r requirements.txt` after updating FT
 
 ## Prepare
 - New binance users only support 20x leverage, please confirm whether your account supports higher leverage!
@@ -25,6 +25,7 @@ Open futures after created the API, the created API still does not support futre
 - `exchange.ccxt_config` add `"options": {"defaultType": "future"}`
 - `exchange.ccxt_async_config` add `"options": {"defaultType": "future"}`
 
+**Sample configuration**: [config-futures-sample.json](config-futures-sample.json)
 
 ## Modify strategy
 ```
@@ -67,4 +68,4 @@ class SimpleBinanceFutures(interface_futures_binance.IFutures):
 ```
 
 ## Other
-- If you want to change the strategy, it is recommended to **restart** instead of using **web reload**.
+If you want to change the strategy, it is recommended to **restart** instead of using **web reload**.
