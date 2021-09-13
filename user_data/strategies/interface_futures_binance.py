@@ -121,9 +121,10 @@ class IFutures(IStrategy):
         self.wallets._exchange._api.fapiPrivateGetPositionsideDual(params={"dualSidePosition": False})
 
         for x in self.wallets._exchange._api.fetch_positions():
-            stoploss = max(-1 / self._leverage + x["maintenanceMarginPercentage"], self.stoploss)
-            ratio = self.order_types.get('stoploss_on_exchange_limit_ratio', 0.99)
-            self._maintenance_stoploss[x["symbol"]] = (stoploss + 1) / ratio - 1
+            self._maintenance_stoploss[x["symbol"]] = max(
+                -1 / self._leverage + x["maintenanceMarginPercentage"],
+                self.stoploss,
+            )
 
         for x in self.wallets._exchange._api.fetch_balance()["info"]["positions"]:
             if int(x["leverage"]) != self._leverage:
@@ -271,8 +272,14 @@ def stoploss(self, pair: str, amount: float, stop_price: float, order_types: Dic
     except ccxt.BaseError as e:
         raise OperationalException(e) from e
 
-def create_dry_run_order(self, pair: str, ordertype: str, side: str, amount: float,
-                         rate: float, params: Dict = {}) -> Dict[str, Any]:
+
+def create_dry_run_order(self,
+                         pair: str,
+                         ordertype: str,
+                         side: str,
+                         amount: float,
+                         rate: float,
+                         params: Dict = {}) -> Dict[str, Any]:
     order_id = f'dry_run_{side}_{datetime.now().timestamp()}'
     _amount = self.amount_to_precision(pair, amount)
     dry_order: Dict[str, Any] = {
