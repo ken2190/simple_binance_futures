@@ -118,7 +118,8 @@ class IFutures(IStrategy):
     def reset_leverage(self):
         logger.info(f'Reset leverage and isolated and dual side!')
 
-        self.wallets._exchange._api.fapiPrivatePostPositionsideDual(params={"dualSidePosition": False})
+        if self.wallets._exchange._api.fapiPrivateGetPositionsideDual()["dualSidePosition"]:
+            self.wallets._exchange._api.fapiPrivateGetPositionsideDual(params={"dualSidePosition": False})
 
         for x in self.wallets._exchange._api.fetch_positions():
             self._maintenance_stoploss[x["symbol"]] = max(
