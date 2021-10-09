@@ -111,14 +111,14 @@ class IFutures(IStrategy):
         logger.info('Hook spot method!')
 
     def reset_stoploss(self):
-        default_maintenance = 0 if self.dp.runmode in [RunMode.LIVE] else 0.03
+        default_maintenance = 0 if self.dp.runmode in [RunMode.LIVE] else 0.01
         self.stoploss = max(self.stoploss, -1 / self._leverage + default_maintenance)
         logger.info(f'Reset stoploss to {self.stoploss}!')
 
     def reset_leverage(self):
         logger.info(f'Reset leverage and isolated and dual side!')
 
-        self.wallets._exchange._api.fapiPrivateGetPositionsideDual(params={"dualSidePosition": False})
+        self.wallets._exchange._api.fapiPrivatePostPositionsideDual(params={"dualSidePosition": False})
 
         for x in self.wallets._exchange._api.fetch_positions():
             self._maintenance_stoploss[x["symbol"]] = max(
