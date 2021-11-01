@@ -105,6 +105,7 @@ class IFutures(IStrategy):
         Binance.stoploss = stoploss
         Binance.create_dry_run_order = create_dry_run_order
         Wallets.get_free = get_free
+        Wallets.get_total_stake_amount = get_total_stake_amount
         Wallets._update_dry = _update_dry
         Wallets.leverage = self._leverage
         Wallets.isolated = self._isolated
@@ -153,6 +154,18 @@ def get_free(self, currency: str) -> float:
         return balance.free * leverage
     else:
         return 0
+
+def get_total_stake_amount(self):
+    val_tied_up = Trade.total_open_trades_stakes()
+    if "available_capital" in self._config:
+        starting_balance = self._config['available_capital']
+        tot_profit = Trade.get_total_closed_profit()
+        available_amount = (starting_balance + tot_profit) * self.leverage
+
+    else:
+        available_amount = ((val_tied_up + self.get_free(self._config['stake_currency'])) *
+                            self._config['tradable_balance_ratio'])
+    return available_amount
 
 
 def _update_dry(self) -> None:
