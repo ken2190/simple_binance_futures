@@ -160,7 +160,7 @@ def get_total_stake_amount(self):
     if "available_capital" in self._config:
         starting_balance = self._config['available_capital']
         tot_profit = Trade.get_total_closed_profit()
-        available_amount = (starting_balance + tot_profit) * self.leverage
+        available_amount = (starting_balance + tot_profit) * self.leverage * self._config['tradable_balance_ratio']
 
     else:
         available_amount = ((val_tied_up + self.get_free(self._config['stake_currency'])) *
