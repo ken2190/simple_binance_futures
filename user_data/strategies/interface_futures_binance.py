@@ -159,6 +159,8 @@ def get_total_stake_amount(self):
     val_tied_up = Trade.total_open_trades_stakes()
     if "available_capital" in self._config:
         starting_balance = self._config['available_capital']
+        disabled_balance = self._config.get('disabled_capital', 0)
+        starting_balance = starting_balance - disabled_balance
         tot_profit = Trade.get_total_closed_profit()
         available_amount = (starting_balance + tot_profit) * self.leverage * self._config['tradable_balance_ratio']
 
